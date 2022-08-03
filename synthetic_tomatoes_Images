@@ -1,0 +1,72 @@
+.python
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Aug  3 09:38:05 2022
+
+@author: Payam_(cyrus)
+"""
+
+OFFSET = 1 # What is the ID of the first tomates generated
+COUNT  = 25000 # How many tomates to generate
+
+import PIL
+from PIL import Image
+from random import randint
+import pandas as pd
+import requests
+from io import BytesIO
+import zipfile
+
+print("Generating tomatos Images")
+
+# Load the tomato and background images
+response_tomatoes = requests.get("https://github.com/PayamCyrus/tomatoes_count/blob/main/2.png")
+tomatoes = Image.open(BytesIO(response_tomatoes.content))
+
+response_background = requests.get("https://github.com/PayamCyrus/tomatoes_count/blob/main/index1.png")
+background = Image.open(BytesIO(response_background.content))
+
+# Resize the background
+background = background.resize((128,128),resample=PIL.Image.LANCZOS)
+
+# Keep the apsect ratio of the paperclips when they are scaled
+aspect = tomatoes.width/tomatoes.height
+tomatoes_count = []
+
+# We will output to a ZIP file that can be easily downloaded
+z = zipfile.ZipFile('C:\Users\Payam_(cyrus)\Desktop\porojec_machin_vision\poroje\tomatoes.zip','w', zipfile.ZIP_DEFLATED)
+
+
+for c in range(COUNT):
+    render_img = background.copy()
+    cnt = randint(0,40)
+    tomatoes_count.append(cnt)
+    for i in range(cnt):
+        a = randint(0,360)
+        tomatoes_size = randint(6,45)
+        w = int(tomatoes_size*aspect)
+
+        tomatoes2 = tomatoes.resize((w,tomatoes_size),resample=PIL.Image.LANCZOS)
+        
+        
+x = randint(-int(tomatoes2.width/2),background.width - int(tomatoes2.width/2))
+y = randint(-int(tomatoes2.height/2),background.height - int(tomatoes2.height/2))
+
+ tomatoes2 = PIL.Image.Image.rotate(tomatoes2,a,resample=PIL.Image.BICUBIC,expand=True)
+ 
+ 
+ 
+ render_img.paste(tomatoes2,(x,y),tomatoes2)
+ 
+    image_file = BytesIO()
+   render_img.save(image_file, 'PNG')
+   z.writestr(f'tomato-{c+OFFSET}.png', image_file.getvalue())
+   
+   df = pd.DataFrame( {'id':range(OFFSET,len(tomatoes_count)+OFFSET),'tomato_count':tomatoes_count})
+   z.writestr('payam tomates dataset.csv', df.to_csv(index=False))
+   
+   z.close()
+print("done")
+
+df
+   
